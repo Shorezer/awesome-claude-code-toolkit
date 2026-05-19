@@ -6,8 +6,65 @@ import json
 import os
 import re
 import sys
+import urllib.parse
 
 import requests
+
+
+def is_wpcom(url):
+    """WordPress.com-hosted sites need the public REST API, not the local one."""
+    return "wordpress.com" in urllib.parse.urlparse(url).netloc
+
+
+def publish_wpcom(url, title, body, status):
+    # WordPress.com REST v1.1. Auth is an OAuth2 bearer token (NOT an app password).
+    # TODO: WORDPRESS_COM_TOKEN must be a WordPress.com OAuth2 token. Create an app
+    # at https://developer.wordpress.com/apps/ and run its OAuth2 flow to mint one.
+    token = os.environ.get("WORDPRESS_COM_TOKEN")
+    if not token or token.startswith("TODO"):
+        print(
+            "ERROR: this is a WordPress.com-hosted site. It needs a WordPress.com "
+            "OAuth2 token in WORDPRESS_COM_TOKEN (separate from an application "
+            "password). Create an app at https://developer.wordpress.com/apps/ and "
+            "complete its OAuth2 flow to get a token.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+    site = urllib.parse.urlparse(url).netloc
+    endpoint = f"https://public-api.wordpress.com/rest/v1.1/sites/{site}/posts/new"
+    r = requests.post(
+        endpoint,
+        json={"title": title, "content": body, "status": status},
+        headers={"Authorization": f"Bearer {token}"},
+        timeout=60,
+    )
+    r.raise_for_status()
+    data = r.json()
+    return {"id": data.get("ID"), "link": data.get("URL")}
+
+
+def publish_selfhosted(url, title, body, status, meta):
+    user = os.environ.get("WORDPRESS_USER")
+    pw = os.environ.get("WORDPRESS_APP_PASSWORD")
+    if not user or not pw or pw.startswith("TODO"):
+        print("ERROR: WORDPRESS_USER / WORDPRESS_APP_PASSWORD required", file=sys.stderr)
+        sys.exit(2)
+    endpoint = url.rstrip("/") + "/wp-json/wp/v2/posts"
+    r = requests.post(
+        endpoint,
+        json={
+            "title": title,
+            "content": body,
+            "status": status,
+            "slug": meta.get("slug"),
+            "meta": {"description": meta.get("meta_description", "")},
+        },
+        auth=(user, pw),
+        timeout=60,
+    )
+    r.raise_for_status()
+    data = r.json()
+    return {"id": data.get("id"), "link": data.get("link")}
 
 
 def parse_frontmatter(text):
@@ -69,9 +126,18 @@ def main():
     meta, body = parse_frontmatter(raw)
     body, missing_links = substitute_affiliate_links(body)
 
+    url = os.environ.get("WORDPRESS_URL")
+    if not url:
+        print("ERROR: WORDPRESS_URL required", file=sys.stderr)
+        sys.exit(2)
+
+    title = meta.get("title", args.title)
+    api = "wordpress.com" if is_wpcom(url) else "self-hosted"
+
     plan = {
         "action": "wordpress.post",
-        "title": meta.get("title", args.title),
+        "api": api,
+        "title": title,
         "slug": meta.get("slug"),
         "status": args.status,
         "length_chars": len(body),
@@ -86,25 +152,11 @@ def main():
         print(f"ERROR: missing affiliate link env vars: {missing_links}", file=sys.stderr)
         sys.exit(1)
 
-    url = os.environ.get("WORDPRESS_URL")
-    user = os.environ.get("WORDPRESS_USER")
-    pw = os.environ.get("WORDPRESS_APP_PASSWORD")
-    if not (url and user and pw):
-        print("ERROR: WORDPRESS_URL / WORDPRESS_USER / WORDPRESS_APP_PASSWORD required", file=sys.stderr)
-        sys.exit(2)
-
-    endpoint = url.rstrip("/") + "/wp-json/wp/v2/posts"
-    payload = {
-        "title": meta.get("title", args.title),
-        "content": body,
-        "status": args.status,
-        "slug": meta.get("slug"),
-        "meta": {"description": meta.get("meta_description", "")},
-    }
-    r = requests.post(endpoint, json=payload, auth=(user, pw), timeout=60)
-    r.raise_for_status()
-    data = r.json()
-    print(json.dumps({"id": data.get("id"), "link": data.get("link")}))
+    if api == "wordpress.com":
+        result = publish_wpcom(url, title, body, args.status)
+    else:
+        result = publish_selfhosted(url, title, body, args.status, meta)
+    print(json.dumps(result))
 
 
 if __name__ == "__main__":

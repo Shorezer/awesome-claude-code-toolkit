@@ -40,8 +40,20 @@ def main():
 
     token = os.environ.get("LINKEDIN_ACCESS_TOKEN")
     author = os.environ.get("LINKEDIN_AUTHOR_URN")
-    if not token or not author:
-        print("ERROR: LINKEDIN_ACCESS_TOKEN and LINKEDIN_AUTHOR_URN required", file=sys.stderr)
+    if not author or author.startswith("TODO"):
+        print(
+            "ERROR: LINKEDIN_AUTHOR_URN required (urn:li:person:XXXX). With only "
+            "w_member_social scope it can't be fetched automatically — set it manually.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+    from linkedin_oauth import load_access_token
+
+    try:
+        token = load_access_token()
+    except Exception as e:
+        print(f"ERROR: could not obtain LinkedIn access token: {e}", file=sys.stderr)
         sys.exit(2)
 
     payload = {
