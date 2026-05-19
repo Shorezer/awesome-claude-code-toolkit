@@ -21,7 +21,8 @@
       "Bash(python scripts/assemble_video.py:*)",
       "Bash(python scripts/publish_youtube.py:*)",
       "Bash(python scripts/publish_blog.py:*)",
-      "Bash(python scripts/publish_linkedin.py:*)"
+      "Bash(python scripts/publish_linkedin.py:*)",
+      "Bash(git push origin:*)"
     ],
     "deny": [
       "Bash(rm -rf:*)",
