@@ -46,19 +46,12 @@ def main():
         print(f"ERROR: video not found: {args.video}", file=sys.stderr)
         sys.exit(1)
 
-    secret = os.environ.get("YOUTUBE_CLIENT_SECRET_PATH")
-    if not secret or not os.path.exists(secret):
-        print("ERROR: YOUTUBE_CLIENT_SECRET_PATH not set or file missing", file=sys.stderr)
-        sys.exit(2)
-
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
-    from google_auth_oauthlib.flow import InstalledAppFlow
 
-    flow = InstalledAppFlow.from_client_secrets_file(
-        secret, ["https://www.googleapis.com/auth/youtube.upload"]
-    )
-    creds = flow.run_local_server(port=0)
+    from google_oauth import load_credentials
+
+    creds = load_credentials()  # shared Sheets+YouTube OAuth token
     yt = build("youtube", "v3", credentials=creds)
 
     body = {

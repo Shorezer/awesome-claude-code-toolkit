@@ -26,6 +26,7 @@ temp/
 
 # Affiliate pipeline
 secrets/
+credentials/
 *.mp3
 *.mp4
 *.wav

@@ -2,6 +2,23 @@
 
 Every assumption I made while building this scaffold. Review each one and flip it if it doesn't match your setup.
 
+## Architecture change — Google auth (OAuth 2.0, not service account)
+
+The original scaffold assumed a Google **service account** key for Sheets. The `zandpai.com` Workspace org blocks service-account key creation, so we pivoted to an **OAuth 2.0 Desktop client**.
+
+What changed:
+
+- New shared helper `scripts/google_oauth.py` runs the OAuth Desktop flow and caches/refreshes the token. It requests both Sheets and YouTube scopes in one consent, so a single token file works for the whole pipeline.
+- `fetch_next_topic.py`, `update_topic_status.py`, and `publish_youtube.py` now call `load_credentials()` from that helper instead of `service_account.Credentials.from_service_account_file(...)`. The `--creds` CLI arg was dropped; paths come from env vars.
+- Env var meanings (reused the existing names):
+  - `YOUTUBE_CLIENT_SECRET_PATH` → the downloaded Desktop client secret JSON (`credentials/client_secret.json`).
+  - `GOOGLE_SHEETS_CREDS_PATH` → the authorized-user **token cache** written after first consent (`credentials/google_oauth_token.json`), NOT a service-account key.
+  - `YOUTUBE_CLIENT_ID` / `YOUTUBE_CLIENT_SECRET` → optional fallback; the helper builds a client config from these if the JSON file is absent.
+- OAuth client: project `concise-crane-495108-d3`, Desktop app type. Google Sheets API and YouTube Data API v3 are both enabled on the project.
+- `credentials/` is gitignored. `client_secret.json` is present locally; the token JSON is generated on first run.
+
+First-run consent caveat: `run_local_server(port=0)` opens a browser. **It must run on a machine with a browser** — not this headless container. Run any Sheets/YouTube command once locally to mint `credentials/google_oauth_token.json`, then copy that token into the container's `credentials/` if you want to run there.
+
 ## Assumptions (default behavior you may want to change)
 
 ### Pipeline
@@ -70,8 +87,8 @@ TTS calls `eleven_v3`. If you have access to a different production model ID, ov
 2. `pip install -r requirements.txt`
 3. Install ffmpeg on PATH: `apt install ffmpeg` / `brew install ffmpeg`.
 4. `cp .env.example .env` and fill all required keys.
-5. Create `secrets/` directory and drop in `google-service-account.json` + `youtube-client-secret.json`.
-6. Create your Google Sheet with the `Topics` tab and required headers. Share it with the service account email (Editor).
+5. Put your Desktop OAuth `client_secret.json` in `credentials/`. On first run of a Sheets/YouTube command, a browser opens for consent and `credentials/google_oauth_token.json` is written. Do this on a machine with a browser.
+6. Create your Google Sheet with the `Topics` tab and required headers. The Google account you consent with must have edit access to the sheet.
 7. Add one row with `status=pending` and an interesting topic.
 8. Open Claude Code in this repo.
 9. Verify agents and commands are loaded: try `/help` and look for `/next-topic`, `/run-pipeline`, etc.

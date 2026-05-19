@@ -36,7 +36,7 @@ $EDITOR .env          # fill API keys
 You'll need:
 
 - A Google Sheet with columns `status | slug | topic | audience | affiliate_tool | notes` (rename the tab `Topics`). Rows with `status=pending` are picked up by `/next-topic`.
-- A service account with edit access to that sheet.
+- A Google OAuth 2.0 **Desktop** client (`credentials/client_secret.json`) with the Sheets API and YouTube Data API v3 enabled. First run opens a browser for consent and caches a token in `credentials/`. The consenting account must have edit access to the sheet.
 - An ElevenLabs voice ID (any v3-compatible voice).
 - `ffmpeg` installed on the system PATH.
 

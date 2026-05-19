@@ -13,11 +13,11 @@ import os
 import re
 import sys
 
-from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+from google_oauth import load_credentials
 
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+
 SHEET_RANGE = "Topics!A:F"
 COLS = ["status", "slug", "topic", "audience", "affiliate_tool", "notes"]
 
@@ -31,17 +31,13 @@ def slugify(s):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sheet-id", default=os.environ.get("GOOGLE_SHEET_ID"))
-    parser.add_argument("--creds", default=os.environ.get("GOOGLE_SHEETS_CREDS_PATH"))
     args = parser.parse_args()
 
     if not args.sheet_id:
         print("ERROR: GOOGLE_SHEET_ID is not set", file=sys.stderr)
         sys.exit(2)
-    if not args.creds or not os.path.exists(args.creds):
-        print(f"ERROR: GOOGLE_SHEETS_CREDS_PATH not found: {args.creds}", file=sys.stderr)
-        sys.exit(2)
 
-    creds = service_account.Credentials.from_service_account_file(args.creds, scopes=SCOPES)
+    creds = load_credentials()
     sheets = build("sheets", "v4", credentials=creds).spreadsheets()
 
     rows = sheets.values().get(spreadsheetId=args.sheet_id, range=SHEET_RANGE).execute().get("values", [])
