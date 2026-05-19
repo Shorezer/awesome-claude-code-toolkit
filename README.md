@@ -40,6 +40,23 @@ You'll need:
 - An ElevenLabs voice ID (any v3-compatible voice).
 - `ffmpeg` installed on the system PATH.
 
+## First-run Google OAuth
+
+Service accounts are blocked by the Workspace org, so Sheets + YouTube use an
+OAuth 2.0 Desktop client. The first run opens a browser for consent and caches
+a token. Do this once, on a machine with a browser:
+
+```
+cd /path/to/project
+python scripts/google_oauth.py
+# Browser opens → sign in as zerick@zandpai.com → grant access → token saved to credentials/google_oauth_token.json
+```
+
+`credentials/` is gitignored, so the token (and `client_secret.json`) are never
+committed. One token covers both Sheets and YouTube scopes. To run the pipeline
+in a headless environment afterward, copy `credentials/google_oauth_token.json`
+into that environment — the consent step itself can't run without a browser.
+
 ## Project layout
 
 ```

@@ -88,3 +88,10 @@ def load_credentials(scopes=None):
             f.write(creds.to_json())
 
     return creds
+
+
+if __name__ == "__main__":
+    # Run directly to perform the first-run consent and cache the token.
+    load_credentials()
+    print(f"Token saved to {_token_path()}")
+

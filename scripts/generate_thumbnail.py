@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Generate a 1792x1024 YouTube thumbnail from a prompt file.
+"""Generate a 16:9 YouTube thumbnail from a prompt file.
 
-Provider is selected by IMAGE_API env var: `openai` (default) or `stability`.
+Provider is selected by IMAGE_API env var: `stability` (default) or `openai`.
+If the selected provider's API key is missing (or a TODO placeholder), the
+script logs a skip and exits 0 so the pipeline isn't blocked on imagery.
 """
 
 import argparse
@@ -13,19 +15,44 @@ import requests
 from PIL import Image
 
 
+def _missing(val):
+    return not val or val.startswith("TODO")
+
+
+def via_stability(prompt, out):
+    api_key = os.environ["STABILITY_API_KEY"]
+    # SDXL v1. 1344x768 is a supported dimension and closest to 16:9.
+    r = requests.post(
+        "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        },
+        json={
+            "text_prompts": [{"text": prompt}],
+            "cfg_scale": 7,
+            "width": 1344,
+            "height": 768,
+            "samples": 1,
+            "steps": 30,
+        },
+        timeout=120,
+    )
+    r.raise_for_status()
+    artifacts = r.json().get("artifacts", [])
+    if not artifacts:
+        print("ERROR: Stability returned no image artifacts", file=sys.stderr)
+        sys.exit(1)
+    with open(out, "wb") as f:
+        f.write(base64.b64decode(artifacts[0]["base64"]))
+
+
 def via_openai(prompt, out):
     from openai import OpenAI
 
-    if not os.environ.get("OPENAI_API_KEY"):
-        print("ERROR: OPENAI_API_KEY is not set", file=sys.stderr)
-        sys.exit(2)
-
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-    resp = client.images.generate(
-        model="gpt-image-1",
-        prompt=prompt,
-        size="1792x1024",
-    )
+    resp = client.images.generate(model="gpt-image-1", prompt=prompt, size="1792x1024")
     data = resp.data[0]
     if getattr(data, "b64_json", None):
         with open(out, "wb") as f:
@@ -37,26 +64,8 @@ def via_openai(prompt, out):
             f.write(r.content)
 
 
-def via_stability(prompt, out):
-    api_key = os.environ.get("STABILITY_API_KEY")
-    if not api_key:
-        print("ERROR: STABILITY_API_KEY is not set", file=sys.stderr)
-        sys.exit(2)
-
-    r = requests.post(
-        "https://api.stability.ai/v2beta/stable-image/generate/core",
-        headers={"authorization": f"Bearer {api_key}", "accept": "image/*"},
-        files={"none": ""},
-        data={"prompt": prompt, "aspect_ratio": "16:9", "output_format": "png"},
-        timeout=120,
-    )
-    r.raise_for_status()
-    with open(out, "wb") as f:
-        f.write(r.content)
-
-
 def downscale_to_youtube(path):
-    """YouTube prefers 1280x720. Source is 1792x1024 — re-export."""
+    """YouTube prefers 1280x720. Re-export whatever the provider produced."""
     img = Image.open(path)
     img.thumbnail((1280, 720), Image.LANCZOS)
     img.save(path, format="PNG", optimize=True)
@@ -68,8 +77,8 @@ def main():
     parser.add_argument("-o", "--output", help="Output png path")
     parser.add_argument(
         "--api",
-        default=os.environ.get("IMAGE_API", "openai"),
-        choices=["openai", "stability"],
+        default=os.environ.get("IMAGE_API", "stability"),
+        choices=["stability", "openai"],
     )
     args = parser.parse_args()
 
@@ -85,10 +94,16 @@ def main():
 
     out = args.output or args.input.replace("thumbnail-prompt.txt", "thumbnail.png")
 
-    if args.api == "openai":
-        via_openai(prompt, out)
-    else:
+    if args.api == "stability":
+        if _missing(os.environ.get("STABILITY_API_KEY")):
+            print("thumbnail skipped — no image API key", file=sys.stderr)
+            sys.exit(0)
         via_stability(prompt, out)
+    else:
+        if _missing(os.environ.get("OPENAI_API_KEY")):
+            print("thumbnail skipped — no image API key", file=sys.stderr)
+            sys.exit(0)
+        via_openai(prompt, out)
 
     downscale_to_youtube(out)
     print(out)
