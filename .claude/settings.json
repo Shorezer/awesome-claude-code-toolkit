@@ -1,0 +1,34 @@
+{
+  "model": "claude-sonnet-4-6",
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Write(./topics/**)",
+      "Edit(./topics/**)",
+      "WebSearch",
+      "WebFetch(*)",
+      "Bash(ls:*)",
+      "Bash(cp:*)",
+      "Bash(mkdir:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(cat topics/**)",
+      "Bash(python scripts/strip_visual_tags.py:*)",
+      "Bash(python scripts/fetch_next_topic.py:*)",
+      "Bash(python scripts/update_topic_status.py:*)",
+      "Bash(python scripts/elevenlabs_tts.py:*)",
+      "Bash(python scripts/generate_thumbnail.py:*)",
+      "Bash(python scripts/assemble_video.py:*)",
+      "Bash(python scripts/publish_youtube.py:*)",
+      "Bash(python scripts/publish_blog.py:*)",
+      "Bash(python scripts/publish_linkedin.py:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git push:*)",
+      "Write(./.env)",
+      "Read(./.env)",
+      "Read(./secrets/**)"
+    ]
+  }
+}
