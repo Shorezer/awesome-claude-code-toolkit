@@ -59,6 +59,16 @@ Defaults to OpenAI's `gpt-image-1` at 1792×1024, then downscales to 1280×720 w
 ### Affiliate link substitution
 Blog publisher substitutes `AFFILIATE_LINK_<TOOL>` placeholders from env vars (`AFFILIATE_LINK_ELEVENLABS`, `AFFILIATE_LINK_JASPER`, etc.). Those env vars are NOT in `.env.example` because the names depend on which tools you actually link from each post — add them as needed. If any placeholder is unresolved, the script refuses to publish.
 
+### WordPress.com (blog) — REST API needs a paid plan
+
+`theai4ge.wordpress.com` is a WordPress.com-hosted site, and its plan does not support REST API posting:
+
+- WordPress.com REST API posting (`public-api.wordpress.com/rest/v1.1/sites/<site>/posts/new`) requires a **paid plan (Personal or above)** or a self-hosted site running **Jetpack**, plus an OAuth2 bearer token (`WORDPRESS_COM_TOKEN`). Free WordPress.com sites cannot publish via the API at all.
+- `publish_blog.py` detects a wordpress.com host and routes to the REST v1.1 path. When `WORDPRESS_COM_TOKEN` is missing/empty/`TODO`, it now logs a `[SKIP]` message and exits 0 — it does NOT crash the pipeline. This keeps `/publish --target all` working even while WordPress is unconfigured.
+- Self-hosted WordPress still works via the `/wp-json/wp/v2/posts` path with `WORDPRESS_USER` + `WORDPRESS_APP_PASSWORD` (basic auth).
+
+To enable WordPress publishing, either upgrade the wordpress.com site to Personal+ and mint an OAuth2 token at https://developer.wordpress.com/apps/, or move the blog to self-hosted WordPress with Jetpack. Until then, blog output (`blog-post.md`) is produced but not auto-published.
+
 ### LinkedIn
 LinkedIn dings external links in post body, so the linkedin-adapter writes posts without URLs and the publisher posts the body alone. **The first-comment-with-link pattern is NOT automated** — the LinkedIn API doesn't support comment-with-link reliably for personal profiles. You'll have to drop the link in a first comment manually for now.
 

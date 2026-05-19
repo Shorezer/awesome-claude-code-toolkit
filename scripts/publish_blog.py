@@ -17,19 +17,19 @@ def is_wpcom(url):
 
 
 def publish_wpcom(url, title, body, status):
-    # WordPress.com REST v1.1. Auth is an OAuth2 bearer token (NOT an app password).
-    # TODO: WORDPRESS_COM_TOKEN must be a WordPress.com OAuth2 token. Create an app
-    # at https://developer.wordpress.com/apps/ and run its OAuth2 flow to mint one.
+    # WordPress.com REST v1.1. Auth is an OAuth2 bearer token (NOT an app password),
+    # and posting via the REST API requires a paid plan (Personal or above) or a
+    # self-hosted site with Jetpack. Free wordpress.com sites can't post this way.
     token = os.environ.get("WORDPRESS_COM_TOKEN")
     if not token or token.startswith("TODO"):
         print(
-            "ERROR: this is a WordPress.com-hosted site. It needs a WordPress.com "
-            "OAuth2 token in WORDPRESS_COM_TOKEN (separate from an application "
-            "password). Create an app at https://developer.wordpress.com/apps/ and "
-            "complete its OAuth2 flow to get a token.",
+            "[SKIP] WordPress publish skipped: WORDPRESS_COM_TOKEN is not set.\n"
+            "       theai4ge.wordpress.com appears to be a WordPress.com site, and "
+            "REST API posting needs a paid plan (Personal+) or self-hosted + Jetpack, "
+            "plus an OAuth2 token. Skipping rather than failing the pipeline.",
             file=sys.stderr,
         )
-        sys.exit(2)
+        sys.exit(0)
     site = urllib.parse.urlparse(url).netloc
     endpoint = f"https://public-api.wordpress.com/rest/v1.1/sites/{site}/posts/new"
     r = requests.post(
