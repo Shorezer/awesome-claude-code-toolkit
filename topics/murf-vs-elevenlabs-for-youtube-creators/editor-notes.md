@@ -1,6 +1,6 @@
 # Editor Notes — Murf vs ElevenLabs: The Credit Math Nobody Shows You
 
-Reviewed: no
+Reviewed: yes
 
 ## Checks
 - [x] Fact trace — 16 distinct claims, 16 traced, 0 rewritten as opinion
@@ -26,4 +26,4 @@ All four original open questions have been addressed (commits as of 2026-05-20):
 - [RESOLVED] Murf cloning ~$3,000/yr figure removed as unverified (Murf lists Enterprise as Custom / Contact Sales). Script and research now say enterprise-only, contact sales, no public price.
 - [ADDED] An affiliate-disclosure line was added to the CTA section.
 
-Remaining for Zerick's final pass: confirm the overall framing, then flip `Reviewed: no` → `yes`.
+Human review complete (2026-05-20). Next step is production (`/produce-audio`), on a separate go-ahead.
