@@ -16,7 +16,14 @@ Reviewed: no
 - None substantive. The script passed all 8 checks on the first pass. script-edited.md is a faithful copy of script.md with all `// VISUAL:`, `// SECTION`, and `[bracket]` tags preserved.
 
 ## Open Questions for Human Reviewer
-- PRICING NOT FROM OFFICIAL SOURCES. research.md flags that elevenlabs.io/pricing, murf.ai/pricing, and pictory.ai/pricing all returned HTTP 403 on direct fetch; every price in this script came from third-party summaries dated 2026-05-20. Spot-check the following on the official pages before publishing: ElevenLabs free/$5/$22/$99 tiers and Instant Voice Cloning on the $5 Starter plan; Murf Creator at $29/mo ($19 annual) and the ~$3,000/yr enterprise cloning add-on; Pictory Professional at $35/mo annual with 600 video min and 120 ElevenLabs premium-voice min, plus Starter at 200 video min.
-- The "2.8x advertised rate" figure (line: tracked user) traces to a single third-party source (qcall.ai/elevenlabs-review), not a controlled benchmark. It is load-bearing for the entire hook and title. Confirm you are comfortable presenting one tracked user's result as the framing claim.
-- Internal characters-per-minute inconsistency carried over from research: the problem section states a 10-minute narration ≈ 15,000 characters, while the walkthrough states Multilingual v2's 10,000-char cap ≈ 10 minutes of audio. Both numbers individually trace to research.md (pain points vs. fact 4), but they imply different chars/minute rates. A sharp viewer could notice. I did not reconcile this by inventing a number — flagging for you to decide whether to align the framing.
-- The 9.4 vs 7.8 realism scores are described as "independent 2026 testing" but research fact 5 sources them to two named comparison-review sites (aitools-directory, startwithsam), one benchmark among several. The phrasing is defensible; confirm the on-screen benchmark chart credits the source rather than implying a first-party test.
+
+All four original open questions have been addressed (commits as of 2026-05-20):
+
+- [RESOLVED] Pricing now verified from the official ElevenLabs and Murf pages; research.md Pricing table + cost model rebuilt. ElevenLabs Starter is $6 (not $5). (Pictory still third-party — official page 403s.)
+- [RESOLVED] The single-sourced "2.8x advertised rate" figure was removed and replaced with an auditable cost model: ElevenLabs ~3x cheaper at ~4 videos/month (~32 min), narrowing to ~1.3x — and flipping to Murf on annual billing — at the comparable Creator tier. The on-screen volume caveat prevents overclaiming.
+- [RESOLVED] chars/min reconciled to ElevenLabs' official ~1,000/min (10K credits ≈ 10 min); the third-party "15,000 per 10-min" figure was dropped.
+- [RESOLVED] The 9.4/7.8 realism scores are now attributed on-screen to aitools-directory and StartWithSam — no first-party-testing implication.
+- [RESOLVED] Murf cloning ~$3,000/yr figure removed as unverified (Murf lists Enterprise as Custom / Contact Sales). Script and research now say enterprise-only, contact sales, no public price.
+- [ADDED] An affiliate-disclosure line was added to the CTA section.
+
+Remaining for Zerick's final pass: confirm the overall framing, then flip `Reviewed: no` → `yes`.

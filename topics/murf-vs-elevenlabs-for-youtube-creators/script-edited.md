@@ -19,7 +19,7 @@ By ElevenLabs' own ratio, a minute of narration runs about a thousand characters
 So a creator posting four videos a month, around eight thousand characters each, needs roughly thirty-two minutes of audio.
 // VISUAL: Cost card "ElevenLabs $6 Starter vs Murf $19–29 Creator" — caption "official pricing, elevenlabs.io & murf.ai, 2026-05-20"
 Here's the part nobody puts on the pricing page.
-ElevenLabs covers that thirty-two minutes on its six-dollar Starter plan.
+ElevenLabs fits that on its six-dollar Starter plan — thirty minutes are included, and the extra two run a small overage, so it's about six dollars forty all in.
 Murf's cheapest paid plan is nineteen to twenty-nine dollars, and it hands you a hundred and twenty minutes whether you need them or not.
 // VISUAL: On-screen text "At ~4 videos/month: ElevenLabs ≈ 3× cheaper"
 At that volume, ElevenLabs lands around three times cheaper — not because of the per-character rate, but because there's a small plan that actually fits.
@@ -59,13 +59,13 @@ Murf ships around two hundred curated ones.
 More choice means less chance your channel sounds like the three other channels using the same default narrator.
 The flip side is that ten thousand voices takes time to sift through.
 Murf's smaller, cleaner shelf is faster to pick from if you just want something professional and done.
-// VISUAL: Two pricing cards: ElevenLabs "$6/mo voice cloning" vs Murf "enterprise-only ~$3,000/yr"
+// VISUAL: Two pricing cards: ElevenLabs "$6/mo voice cloning" vs Murf "enterprise-only, contact sales"
 Second, voice cloning, which is how your channel stops sounding like everyone else's.
 ElevenLabs puts Instant Voice Cloning on its six-dollar-a-month Starter plan.
-Murf does not sell cloning on any normal plan.
-You have to contact sales, and it lands as an enterprise add-on starting around three thousand dollars a year.
+Murf does not sell cloning on any standard plan.
+It's an enterprise add-on you have to contact sales for, with no public price.
 [pause]
-That's the difference between six dollars and three grand for the same basic capability.
+That's the difference between a six-dollar plan and a sales call for the same basic capability.
 // VISUAL: Side-by-side pricing table: ElevenLabs Free/$6/$22/$99 vs Murf Free/$29 ($19 annual)/$99
 Third, the pricing tiers themselves.
 ElevenLabs runs free, then six, then twenty-two, then ninety-nine a month.
@@ -101,7 +101,7 @@ Its Professional plan runs thirty-five a month on annual billing and bundles a c
 You go script to finished video in one place.
 // VISUAL: On-screen text "Pictory Pro: 600 video min/mo, 120 min ElevenLabs premium voices"
 That Professional plan gives you six hundred video minutes a month, with a hundred and twenty of them on ElevenLabs premium voices.
-The cheaper Starter plan halves you to two hundred video minutes a month.
+The cheaper Starter plan drops you to two hundred video minutes a month.
 The tradeoff is control.
 You get a fixed pool of premium voice minutes, not the full ElevenLabs library or your own cloned voice.
 [pause]
@@ -118,3 +118,4 @@ It surfaces a lot of data, and if you don't act on it, you're just paying for da
 // SECTION cta
 // VISUAL: ElevenLabs free plan signup screen, link-in-description arrow
 [excited] The link in the description starts you on ElevenLabs' free plan so you can run your own script through it before spending anything.
+Quick note: that's an affiliate link, so it supports the channel at no extra cost to you.
