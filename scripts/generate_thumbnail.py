@@ -14,6 +14,13 @@ import sys
 import requests
 from PIL import Image
 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+except ImportError:
+    pass
+
 
 def _missing(val):
     return not val or val.startswith("TODO")

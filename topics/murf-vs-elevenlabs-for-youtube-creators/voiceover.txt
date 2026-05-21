@@ -3,23 +3,22 @@ Here's the same twenty-second clip rendered in Murf, then in ElevenLabs.
 Now guess which one costs more per month to actually use.
 [pause]
 Most people guess wrong, and the reason is the part nobody puts on the pricing page.
-The plan headline says one hundred thousand characters a month.
+The plan headline says a hundred and twenty-one thousand credits a month.
 That sounds like a lot.
 Then you do the math.
-A single ten-minute narration eats roughly fifteen thousand characters.
-So that hundred-thousand-character Creator plan covers somewhere between sixty and a hundred minutes of audio, depending on which model you pick.
-If you publish two ten-minute videos a week, that's tight.
-But that's not even the trap.
-The trap is regeneration.
-When a sentence comes out wrong and you regenerate it, that second attempt costs the same credits as the first.
-You are not buying one hundred thousand characters.
-You're buying one attempt at one hundred thousand characters.
-One tracked user found their real cost was two-point-eight times the advertised per-character rate, once you counted every failed take and every redo.
+By ElevenLabs' own ratio, a minute of narration runs about a thousand characters — ten thousand credits buys you ten minutes.
+So a creator posting four videos a month, around eight thousand characters each, needs roughly thirty-two minutes of audio.
+Here's the part nobody puts on the pricing page.
+ElevenLabs fits that on its six-dollar Starter plan — thirty minutes are included, and the extra two run a small overage, so it's about six dollars forty all in.
+Murf's cheapest paid plan is nineteen to twenty-nine dollars, and it hands you a hundred and twenty minutes whether you need them or not.
+At that volume, ElevenLabs lands around three times cheaper — not because of the per-character rate, but because there's a small plan that actually fits.
 [pause]
-That single number changes the whole comparison.
+But that's a low-volume edge, and it's only fair to say so out loud.
+Push past about two hours of audio a month and the gap nearly closes — at the matched Creator tier, Murf billed annually can even come out cheaper per minute.
+And on both tools, every regeneration costs you again, so a flubbed take is never free.
 So let's line these two up on the three things that actually matter for a YouTube channel.
 First, voice realism on long scripts.
-In independent 2026 testing, ElevenLabs scored a 9.4 out of ten on narrative realism.
+In 2026 comparison reviews from aitools-directory and StartWithSam, ElevenLabs scored a 9.4 out of ten on narrative realism.
 Murf came in at 7.8.
 That gap is small on a thirty-second demo.
 It is not small over twelve minutes.
@@ -41,21 +40,21 @@ More choice means less chance your channel sounds like the three other channels 
 The flip side is that ten thousand voices takes time to sift through.
 Murf's smaller, cleaner shelf is faster to pick from if you just want something professional and done.
 Second, voice cloning, which is how your channel stops sounding like everyone else's.
-ElevenLabs puts Instant Voice Cloning on its five-dollar-a-month Starter plan.
-Murf does not sell cloning on any normal plan.
-You have to contact sales, and it lands as an enterprise add-on starting around three thousand dollars a year.
+ElevenLabs puts Instant Voice Cloning on its six-dollar-a-month Starter plan.
+Murf does not sell cloning on any standard plan.
+It's an enterprise add-on you have to contact sales for, with no public price.
 [pause]
-That's the difference between five dollars and three grand for the same basic capability.
+That's the difference between a six-dollar plan and a sales call for the same basic capability.
 Third, the pricing tiers themselves.
-ElevenLabs runs free, then five, then twenty-two, then ninety-nine a month.
+ElevenLabs runs free, then six, then twenty-two, then ninety-nine a month.
 Murf's Creator plan is twenty-nine a month, or nineteen if you pay annually.
-ElevenLabs is cheaper at every comparable tier, and it gives you a real free plan to test on.
+At the low end, ElevenLabs is cheaper and gives you a real free plan to test on; higher up, the two run close, and Murf's annual pricing can edge ahead per minute.
 Now the honest part, because this isn't a clean win.
 ElevenLabs' credit system punishes experimentation.
 Every regeneration burns real credits, and if you work in long takes, you'll hit the wall fast.
-If you're shipping more than four or five long videos a month, the twenty-two-dollar Creator plan probably won't hold.
-You'll likely need the ninety-nine-dollar Pro tier.
-So budget for that before you fall in love with the headline price.
+The Creator plan covers about a hundred and twenty minutes a month, which sounds roomy.
+But if you regenerate heavily or work in long takes, that buffer burns down faster than you'd expect, and the ninety-nine-dollar Pro tier starts to make sense.
+So budget for your real redo rate, not the headline price.
 Murf has one real advantage worth saying out loud.
 It ships with a built-in video editor.
 If you don't already have an editing workflow, that all-in-one studio saves you a tool.
@@ -69,7 +68,7 @@ If managing a separate voice tool sounds like one thing too many, look at Pictor
 Its Professional plan runs thirty-five a month on annual billing and bundles a chunk of ElevenLabs premium voices right in.
 You go script to finished video in one place.
 That Professional plan gives you six hundred video minutes a month, with a hundred and twenty of them on ElevenLabs premium voices.
-The cheaper Starter plan halves you to two hundred video minutes a month.
+The cheaper Starter plan drops you to two hundred video minutes a month.
 The tradeoff is control.
 You get a fixed pool of premium voice minutes, not the full ElevenLabs library or your own cloned voice.
 [pause]
@@ -82,3 +81,4 @@ That's where TubeBuddy comes in, for keyword research, titles, and thumbnail tes
 Its tradeoff is that it's a layer of upkeep.
 It surfaces a lot of data, and if you don't act on it, you're just paying for dashboards.
 [excited] The link in the description starts you on ElevenLabs' free plan so you can run your own script through it before spending anything.
+Quick note: that's an affiliate link, so it supports the channel at no extra cost to you.

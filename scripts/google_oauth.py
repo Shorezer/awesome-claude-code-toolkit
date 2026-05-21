@@ -20,6 +20,13 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
+except ImportError:
+    pass
+
 # Union of scopes used across the pipeline. Requesting both up front means a
 # single consent / token works for Sheets reads/writes and YouTube uploads.
 DEFAULT_SCOPES = [
