@@ -1,25 +1,34 @@
 #!/usr/bin/env python3
 """Assemble an edited 1920x1080 video from a topic's script + voiceover.
 
-Pipeline:
-  1. Parse // VISUAL: cues (and the narration that follows each) from
-     script-edited.md, in order.
-  2. Get voiceover.mp3 duration via ffprobe; give each cue a time window
-     proportional to its narration word count (visuals stay narration-synced).
-  3. Classify each cue and build a visual for its window:
-       - graphic : Pillow-rendered card/chart/text (real numbers from the cue)
-       - broll   : Pexels stock video (keyword search), trimmed/looped to window
-       - screen  : labeled placeholder card for a human screen-capture drop-in
-  4. Composite the timed sequence with ffmpeg, mux voiceover.mp3, write video.mp4.
+Pipeline (unchanged from prior version except the per-cue VISUAL rendering):
+  1. Parse // VISUAL: cues + the narration that follows each, in order.
+  2. Time each cue proportionally to its narration word count, against the
+     ffprobe-measured voiceover.mp3 duration.
+  3. Build a visual per cue:
+       - graphic : an HTML/CSS slide rendered to PNG via a headless browser
+                   (Playwright/Chromium) — polished, on-brand templates.
+       - broll   : Pexels stock video, trimmed/looped to the window.
+       - screen  : an HTML/CSS screen-capture placeholder slide.
+  4. Composite with ffmpeg and mux voiceover.mp3 -> video.mp4.
 
-CLI is unchanged from the previous version (--audio, --image, -o); the script
-path is derived from the audio file's directory.
+Graphics rebuild: graphic-type and screen-placeholder cues are now rendered as
+designed HTML/CSS slides (not Pillow), screenshotted at 1920x1080 by Chromium.
 
-PEXELS_API_KEY (loaded from .env) enables stock b-roll; if unset, broll cues
-fall back to a generated placeholder so the pipeline is never blocked.
+One-time setup on the target machine:
+    pip install -r requirements.txt
+    playwright install chromium          # downloads the browser
+    playwright install-deps              # (Linux) system libs, may need sudo
+Optionally install the Inter font system-wide for the intended typography;
+otherwise a clean system-ui fallback is used.
+
+CLI unchanged: --audio, --image (compat), -o. The script path is derived from
+the audio file's directory. PEXELS_API_KEY (from .env) enables stock b-roll;
+empty key makes broll cues fall back to a generated placeholder slide.
 """
 
 import argparse
+import html as _html
 import os
 import re
 import subprocess
@@ -35,158 +44,162 @@ except ImportError:
     pass
 
 import requests
-from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1920, 1080
 FPS = 30
-BG = (10, 34, 51)          # dark teal
-ACCENT = (255, 107, 26)    # orange
-INK = (240, 244, 248)      # near-white
-MUTE = (150, 168, 180)
-PLACEHOLDER_BG = (28, 32, 38)
-
 PEXELS_TIMEOUT = 600       # slow/flaky connections — be generous
 PEXELS_RETRIES = 3
 
-FONT_DIRS = ["/usr/share/fonts", "/Library/Fonts", "/System/Library/Fonts"]
+
+# ===================================================================== brand slides
+BRAND_CSS = """
+:root{--bg:#0F1115;--card:#1A1D24;--accent:#FF8A3D;--accent2:#4DA6FF;--head:#F2F4F7;--muted:#9AA4B2;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:1920px;height:1080px;background:var(--bg);color:var(--head);
+ font-family:'Inter','Inter UI',system-ui,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+ -webkit-font-smoothing:antialiased;letter-spacing:-.01em;}
+.stage{width:1920px;height:1080px;display:flex;padding:120px;}
+.card{background:var(--card);border-radius:32px;padding:120px;flex:1;display:flex;flex-direction:column;
+ justify-content:center;box-shadow:0 40px 120px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.05);}
+.kicker{color:var(--accent);font-size:36px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:52px;}
+.accent{color:var(--accent);} .accent2{color:var(--accent2);} .muted{color:var(--muted);}
+.center{text-align:center;align-items:center;justify-content:center;}
+.big{font-size:132px;font-weight:800;line-height:1.05;max-width:1500px;letter-spacing:-.025em;}
+.cap{font-size:46px;color:var(--muted);margin-top:60px;max-width:1400px;line-height:1.3;}
+.row{display:flex;gap:64px;width:100%;align-items:stretch;}
+.col{flex:1;background:rgba(255,255,255,.035);border-radius:24px;padding:80px;display:flex;
+ flex-direction:column;justify-content:center;}
+.col h3{font-size:46px;font-weight:600;color:var(--muted);margin-bottom:32px;letter-spacing:0;}
+.col .v{font-size:72px;font-weight:800;line-height:1.08;}
+.vs{display:flex;align-items:center;font-size:60px;font-weight:800;color:var(--accent);}
+table{width:100%;border-collapse:collapse;font-size:54px;}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:42px;text-transform:uppercase;
+ letter-spacing:.08em;padding-bottom:40px;}
+th.l{color:var(--accent2);}
+td{padding:32px 0;border-top:1px solid rgba(255,255,255,.08);font-weight:700;}
+.bars{display:flex;gap:180px;align-items:flex-end;justify-content:center;height:560px;margin:30px 0 10px;}
+.bar{width:260px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;}
+.bar .val{font-size:96px;font-weight:800;margin-bottom:28px;}
+.bar .fill{width:100%;border-radius:20px 20px 0 0;background:var(--accent2);}
+.bar.win .fill{background:var(--accent);}
+.bar.win .val{color:var(--accent);}
+.bar .lab{font-size:48px;font-weight:700;margin-top:34px;color:var(--head);}
+.pills{display:flex;gap:52px;justify-content:center;flex-wrap:wrap;}
+.pill{background:rgba(255,138,61,.12);border:2px solid var(--accent);color:var(--head);
+ font-size:66px;font-weight:700;padding:40px 72px;border-radius:999px;}
+.ph{border:4px dashed rgba(154,164,178,.45);}
+.title{font-size:72px;font-weight:800;margin-bottom:28px;line-height:1.1;}
+.note{font-size:44px;color:var(--muted);margin-top:40px;}
+"""
+
+_NUM_RE = re.compile(r'(\$\d[\d,\.]*(?:\s?\([^)]*\))?|\d+(?:\.\d+)?\s?[×x]\b|\d+(?:\.\d+)?%|\b\d[\d,\.]{2,}\b)')
 
 
-# --------------------------------------------------------------------------- fonts
-_font_cache = {}
+def _esc(s):
+    return _html.escape(s or "")
 
 
-def _find_font_file(bold):
-    want = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
-    for root in FONT_DIRS:
-        if not os.path.isdir(root):
-            continue
-        for dirpath, _, files in os.walk(root):
-            if want in files:
-                return os.path.join(dirpath, want)
-    # any DejaVu / Arial as fallback
-    for root in FONT_DIRS:
-        if not os.path.isdir(root):
-            continue
-        for dirpath, _, files in os.walk(root):
-            for f in files:
-                if f.endswith(".ttf") and ("DejaVuSans" in f or "Arial" in f):
-                    return os.path.join(dirpath, f)
-    return None
+def _hl(s):
+    """Reserve the warm accent for numeric emphasis."""
+    return _NUM_RE.sub(lambda m: f'<span class="accent">{m.group(0)}</span>', _esc(s))
 
 
-def font(size, bold=True):
-    key = (size, bold)
-    if key in _font_cache:
-        return _font_cache[key]
-    path = _find_font_file(bold)
-    fnt = ImageFont.truetype(path, size) if path else ImageFont.load_default()
-    _font_cache[key] = fnt
-    return fnt
+def _doc(body):
+    return f"<!doctype html><html><head><meta charset='utf-8'><style>{BRAND_CSS}</style></head><body>{body}</body></html>"
 
 
-def wrap(draw, text, fnt, max_w):
-    words, lines, cur = text.split(), [], ""
-    for w in words:
-        trial = f"{cur} {w}".strip()
-        if draw.textlength(trial, font=fnt) <= max_w or not cur:
-            cur = trial
-        else:
-            lines.append(cur)
-            cur = w
-    if cur:
-        lines.append(cur)
-    return lines
+def tpl_callout(headline, caption=""):
+    cap = f'<div class="cap">{_esc(caption)}</div>' if caption else ""
+    return _doc(f'<div class="stage"><div class="card center"><div class="big">{_hl(headline)}</div>{cap}</div></div>')
 
 
-def _draw_centered_block(draw, lines, fnt, color, top, line_gap=18):
-    y = top
-    for ln in lines:
-        bbox = draw.textbbox((0, 0), ln, font=fnt)
-        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-        draw.text(((W - tw) / 2, y), ln, font=fnt, fill=color)
-        y += th + line_gap
-    return y
+def tpl_twoup(title, left, right):
+    ll, lv = left
+    rl, rv = right
+    kick = f'<div class="kicker">{_esc(title)}</div>' if title else ""
+    return _doc(
+        f'<div class="stage"><div class="card">{kick}<div class="row">'
+        f'<div class="col"><h3>{_esc(ll)}</h3><div class="v">{_hl(lv)}</div></div>'
+        f'<div class="vs">VS</div>'
+        f'<div class="col"><h3>{_esc(rl)}</h3><div class="v">{_hl(rv)}</div></div>'
+        f'</div></div></div>'
+    )
 
 
-# --------------------------------------------------------------------------- renderers
-def render_text_card(cue, headline, caption, out_path, label="GRAPHIC"):
-    img = Image.new("RGB", (W, H), BG)
-    d = ImageDraw.Draw(img)
-    d.rectangle([0, 0, W, 14], fill=ACCENT)                 # top accent bar
-    d.text((80, 70), label, font=font(34, bold=True), fill=ACCENT)
-
-    head_font = font(96, bold=True)
-    lines = wrap(d, headline, head_font, W - 320)
-    if len(lines) > 4:                                      # shrink for long text
-        head_font = font(64, bold=True)
-        lines = wrap(d, headline, head_font, W - 280)
-    block_h = sum(d.textbbox((0, 0), ln, font=head_font)[3] for ln in lines) + 18 * (len(lines) - 1)
-    _draw_centered_block(d, lines, head_font, INK, (H - block_h) / 2 - 30)
-
-    if caption:
-        cap_font = font(40, bold=False)
-        cap_lines = wrap(d, caption, cap_font, W - 360)
-        _draw_centered_block(d, cap_lines, cap_font, MUTE, H - 80 - 50 * len(cap_lines))
-    img.save(out_path)
+def tpl_pricingtable(left_label, left_tiers, right_label, right_tiers):
+    n = max(len(left_tiers), len(right_tiers))
+    rows = ""
+    for i in range(n):
+        l = left_tiers[i] if i < len(left_tiers) else ""
+        r = right_tiers[i] if i < len(right_tiers) else ""
+        rows += f'<tr><td class="accent2">{_esc(l)}</td><td>{_esc(r)}</td></tr>'
+    return _doc(
+        f'<div class="stage"><div class="card"><div class="kicker">Pricing</div>'
+        f'<table><thead><tr><th class="l">{_esc(left_label)}</th><th>{_esc(right_label)}</th></tr></thead>'
+        f'<tbody>{rows}</tbody></table></div></div>'
+    )
 
 
-def render_bar_chart(values, labels, title, caption, out_path):
-    img = Image.new("RGB", (W, H), BG)
-    d = ImageDraw.Draw(img)
-    d.rectangle([0, 0, W, 14], fill=ACCENT)
-    d.text((80, 70), "BENCHMARK", font=font(34, bold=True), fill=ACCENT)
-
-    tlines = wrap(d, title, font(64, bold=True), W - 320)
-    _draw_centered_block(d, tlines, font(64, bold=True), INK, 150)
-
-    base_y = H - 220
-    max_h = 560
+def tpl_barchart(labels, values, title="", caption=""):
     vmax = max(values) if values else 1
-    n = len(values)
-    bar_w = 240
-    gap = 200
-    total_w = n * bar_w + (n - 1) * gap
-    x = (W - total_w) / 2
-    for i, (v, lab) in enumerate(zip(values, labels)):
-        h = int(max_h * (v / vmax)) if vmax else 0
-        color = ACCENT if v == vmax else (90, 120, 140)
-        d.rectangle([x, base_y - h, x + bar_w, base_y], fill=color)
-        vbbox = d.textbbox((0, 0), str(v), font=font(72, bold=True))
-        d.text((x + (bar_w - (vbbox[2] - vbbox[0])) / 2, base_y - h - 90), str(v),
-               font=font(72, bold=True), fill=INK)
-        lbbox = d.textbbox((0, 0), lab, font=font(44, bold=True))
-        d.text((x + (bar_w - (lbbox[2] - lbbox[0])) / 2, base_y + 24), lab,
-               font=font(44, bold=True), fill=INK)
-        x += bar_w + gap
-
-    if caption:
-        cap_font = font(34, bold=False)
-        cl = wrap(d, caption, cap_font, W - 360)
-        _draw_centered_block(d, cl, cap_font, MUTE, H - 70 - 44 * len(cl))
-    img.save(out_path)
+    bars = ""
+    for v, lab in zip(values, labels):
+        h = int(520 * (v / vmax)) if vmax else 0
+        win = "win" if v == vmax else ""
+        bars += (f'<div class="bar {win}"><div class="val">{v}</div>'
+                 f'<div class="fill" style="height:{h}px"></div>'
+                 f'<div class="lab">{_esc(lab)}</div></div>')
+    kick = f'<div class="kicker">{_esc(title)}</div>' if title else ""
+    cap = f'<div class="cap">{_esc(caption)}</div>' if caption else ""
+    return _doc(f'<div class="stage"><div class="card center">{kick}<div class="bars">{bars}</div>{cap}</div></div>')
 
 
-def render_placeholder(cue, out_path):
-    img = Image.new("RGB", (W, H), PLACEHOLDER_BG)
-    d = ImageDraw.Draw(img)
-    # dashed-ish border
-    for x in range(60, W - 60, 60):
-        d.rectangle([x, 60, x + 30, 66], fill=MUTE)
-        d.rectangle([x, H - 66, x + 30, H - 60], fill=MUTE)
-    for y in range(60, H - 60, 60):
-        d.rectangle([60, y, 66, y + 30], fill=MUTE)
-        d.rectangle([W - 66, y, W - 60, y + 30], fill=MUTE)
-
-    d.text((80, 80), "SCREEN CAPTURE — EDITOR TO DROP IN", font=font(40, bold=True), fill=ACCENT)
-    head = wrap(d, cue, font(72, bold=True), W - 320)
-    _draw_centered_block(d, head, font(72, bold=True), INK, (H - 72 * len(head)) / 2 - 40)
-    note = "Record this product UI and replace this card."
-    nb = d.textbbox((0, 0), note, font=font(40, bold=False))
-    d.text(((W - (nb[2] - nb[0])) / 2, H - 160), note, font=font(40, bold=False), fill=MUTE)
-    img.save(out_path)
+def tpl_sectionheader(parts):
+    pills = "".join(f'<div class="pill">{_esc(p)}</div>' for p in parts)
+    return _doc(f'<div class="stage"><div class="card center"><div class="pills">{pills}</div></div></div>')
 
 
-# --------------------------------------------------------------------------- classify + parse
+def tpl_placeholder(text):
+    return _doc(
+        f'<div class="stage"><div class="card ph center">'
+        f'<div class="kicker">Screen capture — editor to drop in</div>'
+        f'<div class="title">{_esc(text)}</div>'
+        f'<div class="note">Record this product UI and replace this slide.</div></div></div>'
+    )
+
+
+class SlideRenderer:
+    """Render HTML slides to 1920x1080 PNGs with one shared Chromium instance."""
+
+    def __enter__(self):
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError:
+            print(
+                "ERROR: playwright is required for slide rendering.\n"
+                "  pip install -r requirements.txt\n"
+                "  playwright install chromium\n"
+                "  playwright install-deps   # Linux system libs (may need sudo)",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        self._pw = sync_playwright().start()
+        self._browser = self._pw.chromium.launch(args=["--no-sandbox"])
+        self._page = self._browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
+        return self
+
+    def render(self, html, out_path):
+        self._page.set_content(html, wait_until="load")
+        self._page.screenshot(path=out_path, clip={"x": 0, "y": 0, "width": W, "height": H})
+
+    def __exit__(self, *exc):
+        try:
+            self._browser.close()
+        finally:
+            self._pw.stop()
+
+
+# ===================================================================== classify + parse (unchanged)
 SCREEN_KW = ["signup", "sign-up", "dashboard", "editor", "interface", "timeline",
              "panel", "credit meter", "regenerate button", "screen record",
              "screen-record", "screen capture", " ui ", "clip", "app "]
@@ -209,11 +222,10 @@ def classify(cue):
 
 
 def parse_cues(script_path):
-    """Return ordered list of {cue, narration} from // VISUAL: blocks."""
     cues = []
     cur = None
     with open(script_path) as f:
-        for raw in f.splitlines():
+        for raw in f.read().splitlines():
             line = raw.strip()
             m = re.match(r"^//\s*VISUAL:\s*(.+)$", line, re.IGNORECASE)
             if m:
@@ -223,8 +235,7 @@ def parse_cues(script_path):
             if line.startswith("//") or line.startswith("#") or not line:
                 continue
             if cur is not None:
-                clean = re.sub(r"\[[^\]]*\]", "", line)  # drop [v3 tags] for word count
-                cur["narration"] += " " + clean
+                cur["narration"] += " " + re.sub(r"\[[^\]]*\]", "", line)
     for c in cues:
         c["narration"] = c["narration"].strip()
         c["words"] = max(1, len(c["narration"].split()))
@@ -235,7 +246,6 @@ def extract_headline(cue):
     quotes = re.findall(r'"([^"]+)"', cue)
     if quotes:
         return " — ".join(quotes)
-    # text after a leading "type:" descriptor
     head = cue.split(" — ")[0]
     if ":" in head:
         head = head.split(":", 1)[1]
@@ -244,12 +254,64 @@ def extract_headline(cue):
 
 def extract_caption(cue):
     m = re.search(r'caption[:\s]+"?([^"]+)"?', cue, re.IGNORECASE)
-    if m:
-        return m.group(1).strip().rstrip('"')
-    return ""
+    return m.group(1).strip().rstrip('"') if m else ""
 
 
-# --------------------------------------------------------------------------- ffmpeg / ffprobe / pexels
+# ===================================================================== graphic routing
+def _data_part(cue):
+    """Cue text with the trailing caption clause removed."""
+    return cue.split("—")[0].strip()
+
+
+def _side(s):
+    s = s.strip().strip(",")
+    q = re.search(r'"([^"]+)"', s)
+    if q:
+        label = s[: q.start()].strip().strip(",")
+        return label, q.group(1)
+    toks = s.split()
+    return (toks[0], " ".join(toks[1:])) if len(toks) > 1 else ("", s)
+
+
+def graphic_html(cue):
+    cl = cue.lower()
+    core = _data_part(cue)
+    caption = extract_caption(cue)
+
+    if "bar chart" in cl:
+        nums = [float(n) for n in re.findall(r"\d+\.\d+|\d+", core)]
+        labels = [t for t in ("ElevenLabs", "Murf", "Pictory", "TubeBuddy") if t.lower() in cl]
+        if len(nums) >= 2 and len(labels) >= 2:
+            return tpl_barchart(labels[:2], nums[:2], "Voice realism (out of 10)", caption)
+        return tpl_callout(extract_headline(cue), caption)
+
+    if "comparison header" in cl or "three-column" in cl:
+        body = core.split(":", 1)[1] if ":" in core else core
+        parts = [p.strip().strip('"') for p in body.split("/") if p.strip()]
+        if len(parts) >= 2:
+            return tpl_sectionheader(parts)
+
+    if "pricing table" in cl:
+        body = core.split(":", 1)[1] if ":" in core else core
+        sides = re.split(r"\s+vs\.?\s+", body, flags=re.IGNORECASE)
+        if len(sides) >= 2:
+            def side_table(s):
+                t = s.strip().split()
+                return t[0], [x.strip() for x in " ".join(t[1:]).split("/") if x.strip()]
+            ll, lt = side_table(sides[0])
+            rl, rt = side_table(sides[1])
+            return tpl_pricingtable(ll, lt, rl, rt)
+
+    if re.search(r"\svs\.?\s", core, re.IGNORECASE):
+        body = core.split(":", 1)[1] if ":" in core.split(" vs ")[0].lower() or ": " in core else core
+        sides = re.split(r"\s+vs\.?\s+", body, flags=re.IGNORECASE)
+        if len(sides) >= 2:
+            return tpl_twoup("", _side(sides[0]), _side(sides[1]))
+
+    return tpl_callout(extract_headline(cue), caption)
+
+
+# ===================================================================== ffmpeg / ffprobe / pexels (unchanged)
 def run(cmd):
     proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:
@@ -264,7 +326,7 @@ def audio_duration(path):
     return float(out.decode().strip())
 
 
-def pexels_broll(keywords, window, workdir, idx):
+def pexels_broll(keywords, workdir, idx):
     api_key = os.environ.get("PEXELS_API_KEY")
     if not api_key or api_key.startswith("TODO"):
         return None
@@ -315,31 +377,21 @@ def segment_from_video(clip_path, dur, seg_path):
          "-r", str(FPS), "-c:v", "libx264", seg_path])
 
 
-def build_visual(cue, kind, dur, workdir, idx):
-    """Return a segment mp4 path for this cue."""
+# ===================================================================== per-cue visual
+def build_visual(cue, kind, dur, workdir, idx, slides):
     seg = os.path.join(workdir, f"seg_{idx:03d}.mp4")
     if kind == "broll":
         kws = [w for w in re.findall(r"[a-zA-Z]+", cue) if len(w) > 3][:5]
-        clip = pexels_broll(kws, dur, workdir, idx)
+        clip = pexels_broll(kws, workdir, idx)
         if clip:
             segment_from_video(clip, dur, seg)
             return seg
-        # fall back to a generated placeholder card
         kind = "graphic"
         cue = f"B-roll: {cue}"
 
     img = os.path.join(workdir, f"img_{idx:03d}.png")
-    if kind == "screen":
-        render_placeholder(cue, img)
-    elif "bar chart" in cue.lower():
-        nums = [float(n) for n in re.findall(r"\d+\.\d+|\d+", cue.split("—")[0])]
-        labels = [t for t in ("ElevenLabs", "Murf", "Pictory", "TubeBuddy") if t.lower() in cue.lower()]
-        if len(nums) >= 2 and len(labels) >= 2:
-            render_bar_chart(nums[:2], labels[:2], "Voice realism (out of 10)", extract_caption(cue), img)
-        else:
-            render_text_card(cue, extract_headline(cue), extract_caption(cue), img)
-    else:
-        render_text_card(cue, extract_headline(cue), extract_caption(cue), img)
+    html = tpl_placeholder(cue) if kind == "screen" else graphic_html(cue)
+    slides.render(html, img)
     segment_from_image(img, dur, seg)
     return seg
 
@@ -347,7 +399,7 @@ def build_visual(cue, kind, dur, workdir, idx):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--audio", required=True)
-    parser.add_argument("--image", help="Thumbnail (accepted for compatibility; used as last-resort fallback)")
+    parser.add_argument("--image", help="Thumbnail (accepted for compatibility; unused)")
     parser.add_argument("-o", "--output", required=True)
     args = parser.parse_args()
 
@@ -373,7 +425,6 @@ def main():
         sys.exit(1)
 
     total_words = sum(c["words"] for c in cues)
-    # narration-proportional windows; assign rounding remainder to the last cue
     durations = [total * c["words"] / total_words for c in cues]
 
     print(f"Assembling {len(cues)} cues over {total:.1f}s of voiceover...")
@@ -381,11 +432,12 @@ def main():
     workdir = tempfile.mkdtemp(prefix="assemble_")
     segments = []
     try:
-        for i, (cue, dur) in enumerate(zip(cues, durations)):
-            kind = classify(cue["cue"])
-            seg = build_visual(cue["cue"], kind, max(dur, 0.8), workdir, i)
-            segments.append(seg)
-            print(f"  [{i+1:02d}/{len(cues)}] {kind:7s} {dur:5.1f}s  {cue['cue'][:70]}")
+        with SlideRenderer() as slides:
+            for i, (cue, dur) in enumerate(zip(cues, durations)):
+                kind = classify(cue["cue"])
+                seg = build_visual(cue["cue"], kind, max(dur, 0.8), workdir, i, slides)
+                segments.append(seg)
+                print(f"  [{i+1:02d}/{len(cues)}] {kind:7s} {dur:5.1f}s  {cue['cue'][:70]}")
 
         listfile = os.path.join(workdir, "segments.txt")
         with open(listfile, "w") as f:
@@ -400,7 +452,6 @@ def main():
              "-map", "0:v:0", "-map", "1:a:0",
              "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", args.output])
     finally:
-        # leave images on failure for debugging only if env DEBUG set
         if not os.environ.get("ASSEMBLE_DEBUG"):
             import shutil
             shutil.rmtree(workdir, ignore_errors=True)

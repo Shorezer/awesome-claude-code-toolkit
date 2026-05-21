@@ -22,5 +22,8 @@ Pillow==11.0.0
 # Video assembly (system ffmpeg binary required separately)
 ffmpeg-python==0.2.0
 
+# Slide rendering for produce-video (run `playwright install chromium` once)
+playwright==1.49.0
+
 # Misc
 python-dotenv==1.0.1

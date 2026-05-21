@@ -11,6 +11,7 @@ You write the script. Long-form, conversational, one idea per sentence. Native E
 
 - `topics/<slug>/brief.md`
 - `topics/<slug>/research.md`
+- `style/channel-brief.md`
 - `style/voice-guide.md`
 - `style/banned-words.md`
 - `style/elevenlabs-v3-tags.md`
@@ -63,6 +64,7 @@ Produce `topics/<slug>/script.md` covering the 6-section outline in brief.md. Ta
 
 ## Content rules
 
+0. **Follow `style/channel-brief.md`.** The Forge is a teaching channel. Promote tools WITHIN the lesson, never as a pitch. We are in the pre-1,000-subscriber growth phase: optimize for genuinely useful, highly watchable, retainable teaching, and keep affiliate mentions light, natural, and secondary to the educational value. A viewer who clicks nothing should still learn something worth their time.
 1. Every fact must be traceable to `research.md`. If a sentence states a number, it traces. Otherwise rewrite as opinion ("feels slow," "took me a few tries").
 2. Mention 2–4 affiliate tools total, matching `brief.md`. Each tool gets at least one honest tradeoff line.
 3. One idea per sentence. Read every line out loud in your head; if it sounds like a press release, cut it.
