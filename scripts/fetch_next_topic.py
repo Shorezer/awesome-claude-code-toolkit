@@ -20,6 +20,9 @@ from google_oauth import load_credentials
 
 SHEET_RANGE = "Topics!A:F"
 COLS = ["status", "slug", "topic", "audience", "affiliate_tool", "notes"]
+# Statuses eligible to be picked up next. "ready" is what Topic Scout writes;
+# "pending" is the manual/legacy default.
+PICKUP_STATUSES = {"pending", "ready"}
 
 
 def slugify(s):
@@ -49,7 +52,7 @@ def main():
 
     for i, row in enumerate(data, start=2):  # row 2 is first data row
         record = dict(zip(COLS, row + [""] * (len(COLS) - len(row))))
-        if record["status"].strip().lower() != "pending":
+        if record["status"].strip().lower() not in PICKUP_STATUSES:
             continue
 
         if not record["slug"]:

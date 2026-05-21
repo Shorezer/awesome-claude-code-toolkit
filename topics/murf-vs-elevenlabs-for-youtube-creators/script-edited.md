@@ -10,31 +10,31 @@ Now guess which one costs more per month to actually use.
 Most people guess wrong, and the reason is the part nobody puts on the pricing page.
 
 // SECTION problem
-// VISUAL: ElevenLabs Creator plan card, "100,000 characters/month" highlighted
-The plan headline says one hundred thousand characters a month.
+// VISUAL: ElevenLabs Creator plan card, "121,000 credits/month ≈ 121 min" highlighted
+The plan headline says a hundred and twenty-one thousand credits a month.
 That sounds like a lot.
 Then you do the math.
-// VISUAL: On-screen text "10-min video ≈ 15,000 characters"
-A single ten-minute narration eats roughly fifteen thousand characters.
-So that hundred-thousand-character Creator plan covers somewhere between sixty and a hundred minutes of audio, depending on which model you pick.
-If you publish two ten-minute videos a week, that's tight.
-But that's not even the trap.
-// VISUAL: Highlight a flubbed sentence in a script, then a "regenerate" button being clicked
-The trap is regeneration.
-When a sentence comes out wrong and you regenerate it, that second attempt costs the same credits as the first.
-You are not buying one hundred thousand characters.
-You're buying one attempt at one hundred thousand characters.
-// VISUAL: On-screen text "Tracked user: 2.8x advertised rate"
-One tracked user found their real cost was two-point-eight times the advertised per-character rate, once you counted every failed take and every redo.
+// VISUAL: On-screen text "ElevenLabs: ~1,000 characters ≈ 1 minute of audio"
+By ElevenLabs' own ratio, a minute of narration runs about a thousand characters — ten thousand credits buys you ten minutes.
+So a creator posting four videos a month, around eight thousand characters each, needs roughly thirty-two minutes of audio.
+// VISUAL: Cost card "ElevenLabs $6 Starter vs Murf $19–29 Creator" — caption "official pricing, elevenlabs.io & murf.ai, 2026-05-20"
+Here's the part nobody puts on the pricing page.
+ElevenLabs covers that thirty-two minutes on its six-dollar Starter plan.
+Murf's cheapest paid plan is nineteen to twenty-nine dollars, and it hands you a hundred and twenty minutes whether you need them or not.
+// VISUAL: On-screen text "At ~4 videos/month: ElevenLabs ≈ 3× cheaper"
+At that volume, ElevenLabs lands around three times cheaper — not because of the per-character rate, but because there's a small plan that actually fits.
 [pause]
-That single number changes the whole comparison.
+// VISUAL: On-screen text "Higher volume → gap narrows; Murf annual can win"
+But that's a low-volume edge, and it's only fair to say so out loud.
+Push past about two hours of audio a month and the gap nearly closes — at the matched Creator tier, Murf billed annually can even come out cheaper per minute.
+And on both tools, every regeneration costs you again, so a flubbed take is never free.
 
 // SECTION walkthrough
 // VISUAL: Three-column comparison header: "Realism / Cloning / Price"
 So let's line these two up on the three things that actually matter for a YouTube channel.
 First, voice realism on long scripts.
-// VISUAL: Benchmark bar chart, ElevenLabs 9.4 vs Murf 7.8
-In independent 2026 testing, ElevenLabs scored a 9.4 out of ten on narrative realism.
+// VISUAL: Benchmark bar chart, ElevenLabs 9.4 vs Murf 7.8 — caption "Source: aitools-directory.com & startwithsam.com, 2026"
+In 2026 comparison reviews from aitools-directory and StartWithSam, ElevenLabs scored a 9.4 out of ten on narrative realism.
 Murf came in at 7.8.
 That gap is small on a thirty-second demo.
 It is not small over twelve minutes.
@@ -59,28 +59,28 @@ Murf ships around two hundred curated ones.
 More choice means less chance your channel sounds like the three other channels using the same default narrator.
 The flip side is that ten thousand voices takes time to sift through.
 Murf's smaller, cleaner shelf is faster to pick from if you just want something professional and done.
-// VISUAL: Two pricing cards: ElevenLabs "$5/mo voice cloning" vs Murf "enterprise-only ~$3,000/yr"
+// VISUAL: Two pricing cards: ElevenLabs "$6/mo voice cloning" vs Murf "enterprise-only ~$3,000/yr"
 Second, voice cloning, which is how your channel stops sounding like everyone else's.
-ElevenLabs puts Instant Voice Cloning on its five-dollar-a-month Starter plan.
+ElevenLabs puts Instant Voice Cloning on its six-dollar-a-month Starter plan.
 Murf does not sell cloning on any normal plan.
 You have to contact sales, and it lands as an enterprise add-on starting around three thousand dollars a year.
 [pause]
-That's the difference between five dollars and three grand for the same basic capability.
-// VISUAL: Side-by-side pricing table: ElevenLabs Free/$5/$22/$99 vs Murf Free/$29/$99
+That's the difference between six dollars and three grand for the same basic capability.
+// VISUAL: Side-by-side pricing table: ElevenLabs Free/$6/$22/$99 vs Murf Free/$29 ($19 annual)/$99
 Third, the pricing tiers themselves.
-ElevenLabs runs free, then five, then twenty-two, then ninety-nine a month.
+ElevenLabs runs free, then six, then twenty-two, then ninety-nine a month.
 Murf's Creator plan is twenty-nine a month, or nineteen if you pay annually.
-ElevenLabs is cheaper at every comparable tier, and it gives you a real free plan to test on.
+At the low end, ElevenLabs is cheaper and gives you a real free plan to test on; higher up, the two run close, and Murf's annual pricing can edge ahead per minute.
 
 // SECTION tradeoff
 // VISUAL: ElevenLabs credit meter draining faster than expected
 Now the honest part, because this isn't a clean win.
 ElevenLabs' credit system punishes experimentation.
 Every regeneration burns real credits, and if you work in long takes, you'll hit the wall fast.
-// VISUAL: Text overlay "4–5 long videos/month → Pro tier ($99)"
-If you're shipping more than four or five long videos a month, the twenty-two-dollar Creator plan probably won't hold.
-You'll likely need the ninety-nine-dollar Pro tier.
-So budget for that before you fall in love with the headline price.
+// VISUAL: Text overlay "Heavy regeneration → may need Pro ($99)"
+The Creator plan covers about a hundred and twenty minutes a month, which sounds roomy.
+But if you regenerate heavily or work in long takes, that buffer burns down faster than you'd expect, and the ninety-nine-dollar Pro tier starts to make sense.
+So budget for your real redo rate, not the headline price.
 // VISUAL: Murf's built-in video editor interface
 Murf has one real advantage worth saying out loud.
 It ships with a built-in video editor.
