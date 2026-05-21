@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import re
 import sys
 
 try:
@@ -11,6 +12,47 @@ try:
     load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
 except ImportError:
     pass
+
+# ElevenLabs rejects requests over 5000 characters; chunk below that with margin.
+MAX_CHARS = 4500
+
+
+def chunk_text(text, max_chars=MAX_CHARS):
+    """Split text into <=max_chars chunks at line/sentence boundaries only.
+
+    The script is one-idea-per-line, so lines are the natural unit; an
+    over-long line is further split at sentence enders. Never splits a
+    sentence mid-way, which keeps inline [tags] attached to their text.
+    """
+    units = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if len(line) <= max_chars:
+            units.append(line)
+            continue
+        buf = ""
+        for sentence in re.split(r"(?<=[.!?])\s+", line):
+            if buf and len(buf) + len(sentence) + 1 > max_chars:
+                units.append(buf)
+                buf = sentence
+            else:
+                buf = f"{buf} {sentence}".strip()
+        if buf:
+            units.append(buf)
+
+    chunks = []
+    buf = ""
+    for unit in units:
+        if buf and len(buf) + len(unit) + 1 > max_chars:
+            chunks.append(buf)
+            buf = unit
+        else:
+            buf = f"{buf}\n{unit}" if buf else unit
+    if buf:
+        chunks.append(buf)
+    return chunks
 
 
 def main():
@@ -42,17 +84,19 @@ def main():
     from elevenlabs.client import ElevenLabs
 
     client = ElevenLabs(api_key=api_key)
-    audio_stream = client.text_to_speech.convert(
-        voice_id=args.voice,
-        model_id=args.model,
-        text=text,
-        output_format="mp3_44100_128",
-    )
+    chunks = chunk_text(text)
 
     with open(out, "wb") as f:
-        for chunk in audio_stream:
-            if chunk:
-                f.write(chunk)
+        for chunk in chunks:
+            audio_stream = client.text_to_speech.convert(
+                voice_id=args.voice,
+                model_id=args.model,
+                text=chunk,
+                output_format="mp3_44100_128",
+            )
+            for piece in audio_stream:
+                if piece:
+                    f.write(piece)
 
     size_mb = os.path.getsize(out) / (1024 * 1024)
     print(f"{out}  ({size_mb:.2f} MB)")
