@@ -1,6 +1,6 @@
 # Affiliate Pipeline — Project Context
 
-This Claude Code project runs a YouTube affiliate marketing pipeline as a team of specialized agents that hand off structured artifacts. It is replacing the quality-and-iteration layer of an existing n8n + Perplexity + single-Claude-call pipeline.
+This Claude Code project runs a YouTube affiliate marketing pipeline as a team of specialized agents that hand off structured artifacts. The agent team is the whole operation — from SEO topic research through to publishing.
 
 ## Niche
 
@@ -8,11 +8,18 @@ AI tools for solo creators: writing, voice, video, workflow automation. Reviews 
 
 ## Current Phase
 
-**Days 1–30: setup and parity.** The legacy n8n pipeline keeps running in production. This Claude Code pipeline runs in parallel and is not the source of truth for publishing yet. No traffic is migrated until output quality and volume match.
+**Ship & Stabilize.** This agent pipeline is the operation — there is no parallel legacy system. The focus is getting the first video fully through the pipeline and published, closing the affiliate-monetization gap, and hardening pipeline reliability before scaling publishing cadence.
 
-## Revenue Target
+## Success Metrics
 
-$120,000 over 360 days, diversified across the six programs below. Do not push tools we wouldn't use ourselves.
+The business is pre-revenue, so progress is tracked by leading metrics, not a revenue target:
+
+- **Publishing cadence** — videos shipped per week.
+- **Active affiliate programs** — count of approved programs in rotation.
+- **Pipeline reliability** — share of runs that finish without manual intervention.
+- **Per-video performance** — views, affiliate clicks, CTR, and EPC.
+
+Revenue follows once these are healthy. Do not push tools we wouldn't use ourselves.
 
 ## Affiliate Stack
 
