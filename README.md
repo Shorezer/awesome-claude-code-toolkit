@@ -1,6 +1,6 @@
 # Affiliate Pipeline (Claude Code)
 
-YouTube affiliate marketing pipeline run as a team of specialized Claude Code agents. Replaces the quality-and-iteration layer of a legacy n8n + Perplexity + single-Claude-call setup.
+YouTube affiliate marketing pipeline run as a team of specialized Claude Code agents. The agent team handles the whole operation — from SEO topic research through to publishing.
 
 ## What it does
 
