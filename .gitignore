@@ -23,3 +23,17 @@ yarn.lock
 .cache/
 tmp/
 temp/
+
+# Affiliate pipeline
+secrets/
+credentials/
+*.mp3
+*.mp4
+*.wav
+topics/*/voiceover.mp3
+topics/*/video.mp4
+topics/*/thumbnail.png
+!topics/_template/**
+.venv/
+__pycache__/
+*.pyc

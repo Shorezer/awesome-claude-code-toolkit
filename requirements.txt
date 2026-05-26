@@ -1,0 +1,29 @@
+# Pinned to versions known to work as of early 2026.
+# Update via `pip-compile` if you add new deps.
+
+anthropic==0.42.0
+
+# Google APIs (Sheets + YouTube)
+google-api-python-client==2.155.0
+google-auth==2.36.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+
+# ElevenLabs TTS
+elevenlabs==2.5.0
+
+# Image generation
+openai==1.58.0
+
+# HTTP + image processing
+requests==2.32.3
+Pillow==11.0.0
+
+# Video assembly (system ffmpeg binary required separately)
+ffmpeg-python==0.2.0
+
+# Slide rendering for produce-video (run `playwright install chromium` once)
+playwright==1.49.0
+
+# Misc
+python-dotenv==1.0.1
