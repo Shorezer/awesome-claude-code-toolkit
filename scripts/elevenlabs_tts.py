@@ -83,7 +83,7 @@ def main():
 
     from elevenlabs.client import ElevenLabs
 
-    client = ElevenLabs(api_key=api_key)
+    client = ElevenLabs(api_key=api_key, timeout=600)
     chunks = chunk_text(text)
 
     with open(out, "wb") as f:

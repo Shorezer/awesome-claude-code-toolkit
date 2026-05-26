@@ -72,14 +72,14 @@ html,body{width:1920px;height:1080px;background:var(--bg);color:var(--head);
 .col h3{font-size:46px;font-weight:600;color:var(--muted);margin-bottom:32px;letter-spacing:0;}
 .col .v{font-size:72px;font-weight:800;line-height:1.08;}
 .vs{display:flex;align-items:center;font-size:60px;font-weight:800;color:var(--accent);}
-table{width:100%;border-collapse:collapse;font-size:54px;}
+table{width:100%;border-collapse:collapse;font-size:54px;table-layout:fixed;}
 th{text-align:left;color:var(--muted);font-weight:600;font-size:42px;text-transform:uppercase;
  letter-spacing:.08em;padding-bottom:40px;}
 th.l{color:var(--accent2);}
 td{padding:32px 0;border-top:1px solid rgba(255,255,255,.08);font-weight:700;}
-.bars{display:flex;gap:180px;align-items:flex-end;justify-content:center;height:560px;margin:30px 0 10px;}
+.bars{display:flex;gap:180px;align-items:flex-end;justify-content:center;margin:0;}
 .bar{width:260px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;}
-.bar .val{font-size:96px;font-weight:800;margin-bottom:28px;}
+.bar .val{font-size:64px;font-weight:800;margin-bottom:14px;}
 .bar .fill{width:100%;border-radius:20px 20px 0 0;background:var(--accent2);}
 .bar.win .fill{background:var(--accent);}
 .bar.win .val{color:var(--accent);}
@@ -135,8 +135,8 @@ def tpl_pricingtable(left_label, left_tiers, right_label, right_tiers):
         rows += f'<tr><td class="accent2">{_esc(l)}</td><td>{_esc(r)}</td></tr>'
     return _doc(
         f'<div class="stage"><div class="card"><div class="kicker">Pricing</div>'
-        f'<table><thead><tr><th class="l">{_esc(left_label)}</th><th>{_esc(right_label)}</th></tr></thead>'
-        f'<tbody>{rows}</tbody></table></div></div>'
+        f'<div style="width:100%"><table><thead><tr><th class="l">{_esc(left_label)}</th><th>{_esc(right_label)}</th></tr></thead>'
+        f'<tbody>{rows}</tbody></table></div></div></div>'
     )
 
 
@@ -144,7 +144,7 @@ def tpl_barchart(labels, values, title="", caption=""):
     vmax = max(values) if values else 1
     bars = ""
     for v, lab in zip(values, labels):
-        h = int(520 * (v / vmax)) if vmax else 0
+        h = int(240 * (v / vmax)) if vmax else 0
         win = "win" if v == vmax else ""
         bars += (f'<div class="bar {win}"><div class="val">{v}</div>'
                  f'<div class="fill" style="height:{h}px"></div>'
